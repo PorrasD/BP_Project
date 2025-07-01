@@ -19,7 +19,18 @@ def register_routes(app):
         db.session.commit()
         return jsonify({"message": "User created"}), 201
 
-    @app.route('/users')
+    @app.route('/login', methods=['POST'])
+    def login():
+        data = request.get_json()
+        email = data.get("email")
+        password = data.get("password")
+
+        user = User.query.filter_by(email=email).first()
+        if not user or not check_password_hash(user.password, password):
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        return jsonify({"message": "Login successful", "email": user.email}), 200
+
+    @app.route('/users', methods=['GET'])
     def get_users():
-        users = User.query.all()
-        return jsonify([user.serialize() for user in users])
+        return jsonify([user.serialize() for user in User.query.all()])
